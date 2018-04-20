@@ -29,7 +29,7 @@ class MyNode(Node):
         return self
 
     def to_csv_row(self):
-        return [self.name,]
+        return [self.name,'Node']
 
 def generate_from_file(edgelist_filename):
     with open(edgelist_filename, 'r') as f:
@@ -52,7 +52,7 @@ class MapReduce(MapReduceTemplate):
                                     'Node', input[1])])
 
     def get_node_header_row(self, node_type):
-        return ['name:ID(Node))']
+        return ['name:ID(Node)', ':LABEL']
 
     def get_rel_header_row(self, rel_type, source_type, dest_type):
         return SimpleRelationship.get_header_row(rel_type, source_type, dest_type)
