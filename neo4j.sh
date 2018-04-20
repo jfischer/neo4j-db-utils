@@ -4,23 +4,29 @@
 NEO_VERSION=3.3
 
 function print_usage {
-    echo "Usage: neo4j.sh start|stop|status|create|destroy ROOT_DIRECTORY PASSWORD"
+    echo "Usage: neo4j.sh start|stop|status|create|destroy ROOT_DIRECTORY"
 }
 
-if [[ "$#" != "3" ]]; then
+if [[ "$#" != "2" ]]; then
    echo "$0: Wrong number of arguments"
    print_usage
    exit 1
 fi
 CMD=$1
 ROOT_DIR_RELATIVE=$2
-PASSWORD=$3
 
 ROOT_DIR=`cd $ROOT_DIR_RELATIVE; pwd`
 DATA_DIR=`cd $ROOT_DIR/data; pwd`
 LOGS_DIR=`cd $ROOT_DIR/log; pwd`
 CID_DIR=`cd $ROOT_DIR/cid-files; pwd`
 #IMPORTS_DIR=`cd $ROOT_DIR/imports; pwd`
+
+function get_password {
+  read -p "Please enter the neo4j password:" PASSWORD
+}
+function get_password_first_time {
+  read -p "Please enter a password for neo4j:" PASSWORD
+}
 
 function check_existing_environment {
     if [ ! -d $ROOT_DIR ]; then
@@ -71,6 +77,7 @@ if [[ "$1" == "start" ]]; then
   if [[ "$CID" == "" ]]; then
     echo "Running new container"
     make_dirs_if_needed
+    get_password
     echo docker run -d $USER_MAP_ARGS \
            --publish=7474:7474 --publish=7687:7687 \
            --cidfile=$CID_FILE \
@@ -185,6 +192,8 @@ elif [[ "$1" == "create" ]]; then
   # remove the old database files
   echo rm -rf $DATA_DIR/databases $DATA_DIR/dbms
   rm -rf $DATA_DIR/databases $DATA_DIR/dbms
+
+  get_password_first_time
 
   # do the load
   echo "Starting load in container. Load command is: bin/neo4j-admin import $NODES_ARGS $EDGES_ARGS"
