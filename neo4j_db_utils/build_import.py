@@ -38,7 +38,7 @@ def map_and_reduce(mr, generator):
             rel_id = rel.get_rel_id()
             if rel_id in rels_to_index:
                 idx = rels_to_index[rel_id]
-                rels_to_index[rel_id] = relationships[rel_id].reduce(rel)
+                relationships[idx] = relationships[idx].reduce(rel)
                 num_edge_reductions += 1
             else:
                 relationships.append(rel)
@@ -103,23 +103,16 @@ def write_relationships(mr, relationships, edge_file_template):
     try:
         for rel in relationships:
             rel_id = rel.get_rel_id()
-            if (rel_id.rel_type, rel_id.source_type, rel_id.dest_type) \
-               not in output_files:
+            file_key = (rel.get_rel_type(), rel.get_source_node_type(), rel.get_dest_node_type())
+            if file_key not in output_files:
                 fname = edge_file_template.replace('EDGE_LABEL',
-                                                   "%s_%s_to_%s" %
-                                                   (rel_id.rel_type,
-                                                    rel_id.source_type,
-                                                    rel_id.dest_type))
+                                                   "%s_%s_to_%s" % file_key)
                 ofile = OutputFile(fname)
-                output_files[(rel_id.rel_type, rel_id.source_type, rel_id.dest_type)]\
-                    = ofile
-                ofile.writer.writerow(mr.get_rel_header_row(rel_id.rel_type,
-                                                            rel_id.source_type,
-                                                            rel_id.dest_type))
+                output_files[file_key] = ofile
+                ofile.writer.writerow(mr.get_rel_header_row(*file_key))
             else:
-                ofile = output_files[(rel_id.rel_type,
-                                      rel_id.source_type, rel_id.dest_type)]
-            ofile.writerow([rel_id.source_id, rel_id.dest_id, rel_id.rel_type])
+                ofile = output_files[file_key]
+            ofile.writerow(rel.to_csv_row())
     finally:
         for ofile in output_files.values():
             ofile.close()

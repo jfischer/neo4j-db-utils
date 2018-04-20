@@ -39,11 +39,6 @@ class Node(object):
         return a list of values, one per each column."""
         pass
 
-# How we uniquely identify relationships
-# We assume that there is only one edge of a given types
-# between any two nodes.
-RelId = namedtuple('RelId',
-                   ['source_type', 'source_id', 'rel_type', 'dest_type', 'dest_id'])
 
 @add_metaclass(ABCMeta)
 class Relationship(object):
@@ -55,12 +50,19 @@ class Relationship(object):
     @abstractmethod
     def get_rel_id(self):
         """Return the unique id for this relationship.
-        Should be a RelId tuple
         """
         pass
 
     @abstractmethod
-    def merge(self, other):
+    def get_source_node_type(self):
+        pass
+
+    @abstractmethod
+    def get_dest_node_type(self):
+        passs
+
+    @abstractmethod
+    def reduce(self, other):
         """Combine two relationships with the same id.
         """
         pass
@@ -72,21 +74,36 @@ class Relationship(object):
         pass
 
 
+# One way to uniquely define relationships
+# We assume that there is only one edge of a given types
+# between any two nodes.
+RelId = namedtuple('RelId',
+                   ['source_type', 'source_id', 'rel_type', 'dest_type', 'dest_id'])
+
 class SimpleRelationship(Relationship, RelId):
     """This is a concrete class you can use for relationships that don't have
     any properties, just a type. In that case, the "id" of the relationship
-    provides the full specification
+    provides the full specification.
     """
     def get_rel_id(self):
         return self
 
-    def merge(self, other):
+    def reduce(self, other):
         assert self==other
         return self
 
     def to_csv_row(self):
         return [self.source_id, self.dest_id, self.rel_type]
 
+    def get_source_node_type(self):
+        return self.source_type
+
+    def get_dest_node_type(self):
+        return self.dest_type
+
+    def get_rel_type(self):
+        return self.rel_type
+    
     @staticmethod
     def get_header_row(rel_type, from_type, to_type):
         """Can use this in MapReduceTemplate.get_rel_header_row()

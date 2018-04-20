@@ -4,16 +4,29 @@
 NEO_VERSION=3.3
 
 function print_usage {
-    echo "Usage: neo4j.sh start|stop|status|create|destroy ROOT_DIRECTORY"
+    echo "Usage: neo4j.sh start|stop|status|create|destroy NEO4J_HOME"
+    echo "  NEO4J_HOME is the directory where the Neo4j data, log and cid-files will be kept"
+    echo "  It can also be specified as an environment variable."
 }
 
-if [[ "$#" != "2" ]]; then
+if [[ "$#" == "2" ]]; then
+  CMD=$1
+  ROOT_DIR_RELATIVE=$2
+elif [[ "$#" == "1" ]]; then
+  if [[ "$NEO4J_HOME" == "" ]]; then
+    echo "$0: NEO4J_HOME not specified or set as an environment variable"
+    print_usage
+    exit 1
+  else
+    CMD=$1
+    ROOT_DIR_RELATIVE=$NEO4J_HOME
+    echo "Using $ROOT_DIR_RELATIVE as neo4j root directory"
+  fi
+else
    echo "$0: Wrong number of arguments"
    print_usage
    exit 1
 fi
-CMD=$1
-ROOT_DIR_RELATIVE=$2
 
 ROOT_DIR=`cd $ROOT_DIR_RELATIVE; pwd`
 DATA_DIR=`cd $ROOT_DIR/data; pwd`
