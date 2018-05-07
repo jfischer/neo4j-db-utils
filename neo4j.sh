@@ -30,10 +30,16 @@ else
    exit 1
 fi
 
-ROOT_DIR=`cd $ROOT_DIR_RELATIVE; pwd`
-DATA_DIR=`cd $ROOT_DIR/data; pwd`
-LOGS_DIR=`cd $ROOT_DIR/log; pwd`
-CID_DIR=`cd $ROOT_DIR/cid-files; pwd`
+if [ -d $ROOT_DIR_RELATIVE ]; then
+    ROOT_DIR=`cd $ROOT_DIR_RELATIVE; pwd`
+else
+    echo mkdir -p $ROOT_DIR_RELATIVE
+    mkdir -p $ROOT_DIR_RELATIVE
+    ROOT_DIR=`cd $ROOT_DIR_RELATIVE; pwd`
+fi
+DATA_DIR=$ROOT_DIR/data
+LOGS_DIR=$ROOT_DIR/log
+CID_DIR=$ROOT_DIR/cid-files
 #IMPORTS_DIR=`cd $ROOT_DIR/imports; pwd`
 
 function get_password {
