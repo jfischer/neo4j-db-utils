@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright 2018 by Jeff Fischer. Licensed under the 3-clause BSD license.
 """
 Sequential implementation of map-reduce for graph import
 """

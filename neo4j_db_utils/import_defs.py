@@ -1,3 +1,4 @@
+# Copyright 2018 by Jeff Fischer. Licensed under the 3-clause BSD license.
 """
 Definitions for map-reduce based creation of Neo4j import files.
 

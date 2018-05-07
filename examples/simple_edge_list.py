@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Copyright 2018 by Jeff Fischer. Licensed under the 3-clause BSD license.
 import sys
 import argparse
 from os.path import abspath, dirname, exists

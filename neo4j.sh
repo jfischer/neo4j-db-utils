@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright 2018 by Jeff Fischer. Licensed under the 3-clause BSD license.
+#
 # Scrip to create/startu/stop/destroy neo4j instances
 # using docker
 NEO_VERSION=3.3
