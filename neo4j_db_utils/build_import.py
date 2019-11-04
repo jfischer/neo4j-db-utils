@@ -74,7 +74,7 @@ def write_nodes(mr, nodes, node_file_template):
         for node in nodes:
             ntype = node.get_node_type()
             nname = node.get_node_id()
-            assert '\n' not in nname, "Node '%s' contains a newline!"
+            assert '\n' not in nname, "Node '%s' contains a newline!"%nname
             if ntype not in output_files:
                 fname = node_file_template.replace('NODE_LABEL',
                                                    ntype)
