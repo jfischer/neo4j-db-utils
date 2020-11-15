@@ -140,6 +140,16 @@ def stop(args):
     else:
         print("Neo4j already stopped.")
 
+def status(args):
+    if not exists(args.neo4j_root):
+        print(f"Root directory for Neo4j install {args.neo4j_root} does not exist.")
+        return
+    (data, log, cid_dir) = get_dirs(args)
+    if neo4j_running(cid_dir):
+        cid = get_cid(cid_dir)
+        print(f"Neo4j is running, container id is {cid}.")
+    else:
+        print("Neo4j is not running.")
 
 
 
@@ -172,6 +182,8 @@ def main(argv=sys.argv[1:]):
             pass
         elif command=='destroy':
             pass
+        elif command=='status':
+            pass
         else:
             parser.error(f"Unknown command {args.command}")
 
@@ -188,6 +200,8 @@ def main(argv=sys.argv[1:]):
         elif command=='destroy':
             print("Running destroy...")
             destroy(args)
+        elif command=='status':
+            status(args)
         else:
             assert 0
 
