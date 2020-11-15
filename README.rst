@@ -7,7 +7,7 @@ This file contains some utilities for working with the Neo4j graph database.
 neo4j_db_utils
 --------------
 This is a python package for building importers for the Neo4j bulk import
-utility. It works with both Python 2.7 and Python 3.3+ and generates a
+utility. It works with Python 3.36+ and generates a
 set of csv files in the expected format.
 
 To use it, you create a script that imports the definitions from
@@ -30,32 +30,38 @@ list graph format. To run it, type::
 
 TODO
 ~~~~
-Need to add a ``setup.py`` file to install as a package. Also need more conceptual explanation.
+Things to do:
 
-neo4j.sh
---------
-``neo4j.sh`` is a shell script to create, start, stop, and destroy Neo4j databases
+* Need more conceptual explanation.
+* Remove dependency on six (was for 2.7 support)
+
+neoctl
+------
+``neoctl`` is a Python command line script to create, start, stop, and destroy Neo4j databases
 running in a Docker container.
 
-Before the first time you use it, you need to run the following to create a Docker image
-to be used by the bulk loader::
+Before the first time you use it, you need to install docker and login to docker hub.
 
-    cd ./neo4j-loader-docker
-    make build
+The ``neoctl`` script can be invoked as follows::
 
-The ``neo4j.sh`` script can be invoked as follows::
+  neoctl [-h] [--neo4j-root NEO4J_ROOT] [--import-directory IMPORT_DIRECTORY] [--password PASSWORD] COMMAND [COMMAND ...]
 
-    neo4j.sh create|start|stop|status|destroy [NEO4J_HOME]
+  positional arguments:
+    COMMAND               Command to run, one of create, start, stop, status, or destroy
 
-The first argument is the subcommand and the second is the directory to contain the
-files used by the Neo4j instance (the database files, logs, and container id files).
-You can also specify ``NEO4J_HOME`` as an environment variable. In that case, you
-can leave it off the command line.
-
+  optional arguments:
+    -h, --help            show this help message and exit
+    --neo4j-root NEO4J_ROOT
+                          Root directory for Neo4j files, defaults to $HOME/neo4j
+    --import-directory IMPORT_DIRECTORY
+                          Directory for import files, defaults to the current directory. Used only when creating database.
+    --password PASSWORD   Password for neo4j user. Needed for create and start commands.
+  
 When you run the ``create`` subcommand, the script expects the bulk loader csv
-files to be in the current directory.
+files to be in the directory specified by --import-directory. Note that create imports the
+database but does not leave an instance running. To start it afterward, run the ``start`` command.
 
 License
 -------
-Copyright 2018 by Jeff Fischer. This is made available
+Copyright 2018-2020 by Jeff Fischer. This is made available
 under the 3-clause BSD license.
