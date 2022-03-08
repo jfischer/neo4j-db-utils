@@ -13,6 +13,14 @@ PYTHON_BASE_VERSION=sys.version_info[0]
 ##########################################################################
 #    Types for the Graph Components (nodes and relationships)
 ##########################################################################
+class MergeError(Exception):
+    """Merged in reduce() if both instances have a value and they disagree"""
+    pass
+
+class ValidationError(Exception):
+    """Raised if a node fails validation after merging is complete"""
+    pass
+
 
 @add_metaclass(ABCMeta)
 class Node(object):
@@ -39,6 +47,35 @@ class Node(object):
         """Convert the node to a single row in the final csv. This should
         return a list of values, one per each column."""
         pass
+
+    def validate(self):
+        """Optional method to validate a node after it has been reduced.
+        Should throw a ValidationError exception if missing a required property, etc.
+        The default implementation looks on the class object for a REQUIRED_ATTRS
+        member, and if found, checks that all those attributes on the instance
+        have a value.
+        """
+        if hasattr(self.__class__, "REQUIRED_ATTRS"):
+            for attr in self.__class__.REQUIRED_ATTRS:
+                value = getattr(self, attr)
+                if (value is None) or value=="":
+                    raise ValidationError(f"Node {self.get_node_id()} of type {self.get_node_type()} is missing a value for {attr}")
+
+    def _merge_values(self, other, attribute):
+        """Helper method for reduce() that compares an attribute value on this instance
+        and the other instance. Returns the value that's present if only on one instance
+        or if they agree if on both. Raises an error if on both, but disagree.
+        """
+        self_val = getattr(self, attribute)
+        other_val = getattr(other, attribute)
+        if self_val==other_val:
+            return self_val
+        elif other_val is None:
+            return self_val
+        elif self_val is None:
+            return other_val
+        else:
+            raise MergeError(f"Unable to merge values {self_val} and {other_val} for {self.get_node_type()} attribute {attribute}")
 
 
 @add_metaclass(ABCMeta)
@@ -103,6 +140,7 @@ class SimpleRelationship(Relationship, RelId):
         return self.dest_type
 
     def get_rel_type(self):
+        # TODO: check whether this needs to be on metaclass - used to get file key in build_import
         return self.rel_type
     
     @staticmethod

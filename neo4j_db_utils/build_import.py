@@ -91,6 +91,8 @@ def write_nodes(mr, nodes, node_file_template):
                     row[i] = 'true' if row[i] else 'false'
                 elif isinstance(row[i], str):
                     row[i] = cleanup_text(row[i])
+                elif row[i] is None:
+                    pass # don't convert None to 'None'
                 else:
                     row[i] = str(row[i])
             ofile.writerow(row)
