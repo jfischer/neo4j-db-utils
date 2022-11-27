@@ -13,7 +13,8 @@ import subprocess
 import shutil
 import glob
 
-NEO4J_VERSION='latest'
+#NEO4J_VERSION='latest'
+NEO4J_VERSION='4.2'
 
 DEFAULT_NEO4J_ROOT=abspath(expanduser('~/neo4j'))
 DEFAULT_IMPORT_DIRECTORY=abspath(expanduser('.'))
@@ -42,7 +43,7 @@ def run_docker(command_and_args):
 def get_dirs(args):
     """Return data, log, and cid directories"""
     return (join(args.neo4j_root, 'data'),
-            join(args.neo4j_root, 'log'),
+            join(args.neo4j_root, 'logs'),
             join(args.neo4j_root, 'cid-files'))
 
 def get_cid(cid_dir):
@@ -99,12 +100,14 @@ def create(args):
         edge_import_files.append(join(NEO4J_IMPORT_DIR, basename(fpath)))
     edges_args=' '.join(['--relationships='+f for f in edge_import_files])
     # recreate the directories
-    for dirpath in [data, log, cid_dir]:
-        if isdir(dirpath):
+    for dirpath in [cid_dir, data, log]:
+        if exists(dirpath):
             shutil.rmtree(dirpath)
         os.makedirs(dirpath)
+        print(f"created directory {dirpath}")
+        os.chmod(dirpath, 0o777)
     run_docker(f"pull neo4j:{NEO4J_VERSION}")
-    CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={args.import_directory}:/var/lib/neo4j/import --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{NEO4J_VERSION} bin/neo4j-admin import {nodes_args} {edges_args}"
+    CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={log}:/logs --volume={args.import_directory}:/var/lib/neo4j/import --env=SECURE_FILE_PERMISSIONS=no --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{NEO4J_VERSION} bin/neo4j-admin import {nodes_args} {edges_args}"
     print(CREATE_COMMAND)
     run_docker(CREATE_COMMAND)
 
@@ -115,7 +118,7 @@ def start(args):
     cid_file = join(cid_dir, 'neo4j.cid')
     if exists(cid_file):
         os.remove(cid_file) # remove from a dead container
-    START_COMMAND=f"run -d --rm --publish=7474:7474 --publish=7687:7687 --cidfile={cid_file} --volume={data}:/data --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{NEO4J_VERSION}"
+    START_COMMAND=f"run -d --rm --publish=7474:7474 --publish=7687:7687 --cidfile={cid_file}  --volume={data}:/data  --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{NEO4J_VERSION}"
     print(START_COMMAND)
     run_docker(START_COMMAND)
 
