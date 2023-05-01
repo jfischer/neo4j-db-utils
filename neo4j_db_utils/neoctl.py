@@ -8,7 +8,7 @@ Released under the BSD 3-clause license.
 import sys
 import argparse
 import os
-from os.path import abspath, expanduser, join, exists, isdir, basename
+from os.path import abspath, expanduser, join, exists, isdir, basename, realpath
 import subprocess
 import shutil
 import glob
@@ -116,7 +116,7 @@ def create(args):
         os.makedirs(dirpath)
         print(f"created directory {dirpath}")
         os.chmod(dirpath, 0o777)
-    run_docker(f"pull neo4j:{ags.neo4j_version}")
+    run_docker(f"pull neo4j:{args.neo4j_version}")
     CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={log}:/logs --volume={args.import_directory}:/var/lib/neo4j/import --env=SECURE_FILE_PERMISSIONS=no --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{args.neo4j_version} bin/neo4j-admin import {nodes_args} {edges_args}"
     print(CREATE_COMMAND)
     run_docker(CREATE_COMMAND)
@@ -179,9 +179,9 @@ def main(argv=sys.argv[1:]):
         with open('./neoctl_conf.json', 'r') as f:
             data = json.load(f)
         if 'neo4j_root' in data:
-	        default_neo4j_root = data['neo4j_root']
+	        default_neo4j_root = realpath(data['neo4j_root'])
         if 'import_directory' in data:
-            default_import_directory = data['import_directory']
+            default_import_directory = realpath(data['import_directory'])
         if 'neo4j_version' in data:
             default_neo4j_version = data['neo4j_version']
         if 'password' in data:
