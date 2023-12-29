@@ -117,7 +117,10 @@ def create(args):
         print(f"created directory {dirpath}")
         os.chmod(dirpath, 0o777)
     run_docker(f"pull neo4j:{args.neo4j_version}")
-    CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={log}:/logs --volume={args.import_directory}:/var/lib/neo4j/import --env=SECURE_FILE_PERMISSIONS=no --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{args.neo4j_version} bin/neo4j-admin import {nodes_args} {edges_args}"
+    if args.neo4j_version=="latest" or args.neo4j_version.startswith("5"):
+        CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={log}:/logs --volume={args.import_directory}:/var/lib/neo4j/import --env=SECURE_FILE_PERMISSIONS=no --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M {get_user_map_args()} neo4j:{args.neo4j_version} bin/neo4j-admin database import full {nodes_args} {edges_args}"
+    else: # neo4j 4.x
+        CREATE_COMMAND=f"run -it --rm --volume={data}:/data --volume={log}:/logs --volume={args.import_directory}:/var/lib/neo4j/import --env=SECURE_FILE_PERMISSIONS=no --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{args.neo4j_version} bin/neo4j-admin import {nodes_args} {edges_args}"
     print(CREATE_COMMAND)
     run_docker(CREATE_COMMAND)
 
@@ -128,7 +131,10 @@ def start(args):
     cid_file = join(cid_dir, 'neo4j.cid')
     if exists(cid_file):
         os.remove(cid_file) # remove from a dead container
-    START_COMMAND=f"run -d --rm --publish=7474:7474 --publish=7687:7687 --cidfile={cid_file}  {get_conf_mount(conf_dir)} --volume={data}:/data  --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{args.neo4j_version}"
+    if args.neo4j_version=="latest" or args.neo4j_version.startswith("5"):
+        START_COMMAND=f"run -d --rm --publish=7474:7474 --publish=7687:7687 --cidfile={cid_file}  {get_conf_mount(conf_dir)} --volume={data}:/data  --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M {get_user_map_args()} neo4j:{args.neo4j_version}"
+    else: # neo4j 4.x
+        START_COMMAND=f"run -d --rm --publish=7474:7474 --publish=7687:7687 --cidfile={cid_file}  {get_conf_mount(conf_dir)} --volume={data}:/data  --volume={log}:/logs --env=NEO4J_AUTH=neo4j/{args.password} --env=NEO4J_dbms_memory_pagecache_size=1024M --env=NEO4J_dbms_memory_heap_maxSize=1024M {get_user_map_args()} neo4j:{args.neo4j_version}"
     print(START_COMMAND)
     run_docker(START_COMMAND)
 
